@@ -1,0 +1,132 @@
+-- Variables
+local lp = game.Players.LocalPlayer
+local path = game.Workspace.Enemies
+getgenv().Farm = true
+local distance = 10 -- Adjustable distance
+
+local function BringNPCs()
+    while getgenv().Farm do
+        local playerHRP = lp.Character:WaitForChild("HumanoidRootPart")
+        for _, npc in ipairs(path:GetChildren()) do
+            local npcHRP = npc:FindFirstChild("HumanoidRootPart")
+            local npcHumanoid = npc:FindFirstChild("Humanoid")
+            if npcHRP and npcHumanoid and npcHumanoid.Health > 0 then
+                npcHRP.CFrame = playerHRP.CFrame + playerHRP.CFrame.LookVector * distance
+            end
+        end
+        task.wait(0.1) -- Adjust the wait time as needed
+    end
+end
+
+-- Create GUI
+local screenGui = Instance.new("ScreenGui")
+local frame = Instance.new("Frame")
+local toggleButton = Instance.new("TextButton")
+local closeButton = Instance.new("TextButton")
+local openButton = Instance.new("TextButton")
+local dragButton = Instance.new("TextButton") -- Drag button to move UI
+
+screenGui.Parent = game.CoreGui
+
+frame.Size = UDim2.new(0, 220, 0, 80)
+frame.Position = UDim2.new(0.5, -110, 0.5, -40)
+frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Parent = screenGui
+frame.ClipsDescendants = true
+frame.BackgroundTransparency = 0.2
+frame.ZIndex = 2
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = frame
+
+-- Drag Button
+dragButton.Size = UDim2.new(1, 0, 0.2, 0)
+dragButton.Position = UDim2.new(0, 0, 0, 0)
+dragButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+dragButton.Text = "Move UI"
+dragButton.TextColor3 = Color3.new(1, 1, 1)
+dragButton.Parent = frame
+
+local dragCorner = Instance.new("UICorner")
+dragCorner.CornerRadius = UDim.new(0, 10)
+dragCorner.Parent = dragButton
+
+dragButton.MouseButton1Down:Connect(function()
+    local inputService = game:GetService("UserInputService")
+    local dragging = true
+    local mouse = lp:GetMouse()
+    local offset = Vector2.new(mouse.X - frame.AbsolutePosition.X, mouse.Y - frame.AbsolutePosition.Y)
+    
+    local function onInputChanged(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            frame.Position = UDim2.new(0, mouse.X - offset.X, 0, mouse.Y - offset.Y)
+        end
+    end
+    
+    local function onInputEnded()
+        dragging = false
+    end
+    
+    inputService.InputChanged:Connect(onInputChanged)
+    inputService.InputEnded:Connect(onInputEnded)
+end)
+
+-- Toggle Button
+toggleButton.Size = UDim2.new(0.7, -5, 0.6, 0)
+toggleButton.Position = UDim2.new(0.05, 0, 0.3, 0)
+toggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+toggleButton.Text = "Toggle Farm"
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Parent = frame
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 10)
+toggleCorner.Parent = toggleButton
+
+toggleButton.MouseButton1Click:Connect(function()
+    getgenv().Farm = not getgenv().Farm
+    if getgenv().Farm then
+        toggleButton.Text = "Stop Farm"
+        BringNPCs()
+    else
+        toggleButton.Text = "Start Farm"
+    end
+end)
+
+-- Close Button
+closeButton.Size = UDim2.new(0.2, 0, 0.6, 0)
+closeButton.Position = UDim2.new(0.75, 5, 0.3, 0)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.Parent = frame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 10)
+closeCorner.Parent = closeButton
+
+closeButton.MouseButton1Click:Connect(function()
+    frame.Visible = false
+    openButton.Visible = true
+end)
+
+-- Open Button
+openButton.Size = UDim2.new(0, 100, 0, 50)
+openButton.Position = UDim2.new(0.5, -50, 0.6, 0)
+openButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+openButton.Text = "Open UI"
+openButton.TextColor3 = Color3.new(1, 1, 1)
+openButton.Parent = screenGui
+openButton.Visible = false
+
+local openCorner = Instance.new("UICorner")
+openCorner.CornerRadius = UDim.new(0, 10)
+openCorner.Parent = openButton
+
+openButton.MouseButton1Click:Connect(function()
+    frame.Visible = true
+    openButton.Visible = false
+end)
